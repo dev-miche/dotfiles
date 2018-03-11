@@ -209,7 +209,7 @@ map <Leader>v :vnew <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
 imap jj <esc>
 map <Leader>ac :sp app/controllers/application_controller.rb<cr>
 map <Leader>bb :!bundle install<cr>
-map <Leader>d orequire 'pry'<cr>binding.pry<esc>:w<cr>
+map <Leader>d orequire 'byebug'<cr>byebug<esc>:w<cr>
 map <Leader>sc :sp db/schema.rb<cr>
 nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
 augroup myfiletypes
