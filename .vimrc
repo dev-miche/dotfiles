@@ -1,4 +1,11 @@
+" Use Vim settings, rather then Vi settings (much better!).
+" This must be first, because it changes other options as a side effect.
 set nocompatible
+
+" source ~/.vimrc.before if it exists.
+if filereadable(expand("~/.vimrc.before"))
+source ~/.vimrc.before
+endif
 
 " Install vim-plug if not installed
 if empty(glob('~/.vim/autoload/plug.vim'))
@@ -9,6 +16,7 @@ endif
 
 call plug#begin('~/.vim/plugged')
 
+Plug 'hwartig/vim-seeing-is-believing'  " get the result of ruby code
 Plug 'ervandew/supertab'
 Plug 'kchmck/vim-coffee-script'
 Plug 'skwp/greplace.vim'
@@ -28,29 +36,158 @@ Plug 'ctrlpvim/ctrlp.vim'               " searching in vim
 Plug 'rizzatti/dash.vim'                " support for dash
 Plug 'mileszs/ack.vim'                  " Use Ag for search
 Plug 'terryma/vim-multiple-cursors'     " Sublime text style multiple cursors
-Plug 'mortice/pbcopy.vim'               " Easy copy paste in terminal vim
-Plug 'nanotech/jellybeans.vim' "vim color scheme
+Plug 'nanotech/jellybeans.vim'          "vim color scheme
 
 call plug#end()  " All of your Plugins must be added before the following line
 
-filetype plugin indent on    " required
-" ========================================================================
-" Ruby stuff
-" ========================================================================
-syntax on                 " Enable syntax highlighting
-augroup myfiletypes
-  " Clear old autocmds in group
-  autocmd!
-  " autoindent with two spaces, always expand tabs
-  autocmd FileType ruby,eruby,yaml setlocal ai sw=2 sts=2 et
-  autocmd FileType ruby,eruby,yaml setlocal path+=lib
-  autocmd FileType ruby,eruby,yaml setlocal colorcolumn=80
-  " Make ?s part of words
-  autocmd FileType ruby,eruby,yaml setlocal iskeyword+=?
-augroup END
-" Enable built-in matchit plugin
+" ================ General Config ====================
+
+colorscheme jellybeans
+
+set relativenumber              "Line numbers are good
+set backspace=indent,eol,start  "Allow backspace in insert mode
+set history=1000                "Store lots of :cmdline history
+set showcmd                     "Show incomplete cmds down the bottom
+set showmode                    "Show current mode down the bottom
+set gcr=a:blinkon0              "Disable cursor blink
+set visualbell                  "No sounds
+set autoread                    "Reload files changed outside vim
+
+" This makes vim act like all other editors, buffers can
+" exist in the background without being in a window.
+" http://items.sjbach.com/319/configuring-vim-right
+set hidden
+
+"turn on syntax highlighting
+syntax on
+
+" Change leader to a comma because the backslash is too far away
+" That means all \x commands turn into ,x
+" The mapleader has to be set before vundle starts loading all 
+" the plugins.
+let mapleader=","
+set timeout timeoutlen=1500
+
+" ================ Turn Off Swap Files ==============
+
+set noswapfile
+set nobackup
+set nowb
+
+" ================ Persistent Undo ==================
+" Keep undo history across sessions, by storing in file.
+" Only works all the time.
+if has('persistent_undo') && !isdirectory(expand('~').'/.vim/backups')
+silent !mkdir ~/.vim/backups > /dev/null 2>&1
+set undodir=~/.vim/backups
+set undofile
+endif
+
+" ================ Folds ============================
+
+set foldmethod=indent   "fold based on indent
+set foldnestmax=3       "deepest fold is 3 levels
+set nofoldenable        "dont fold by default
+
+"
+" ================ Scrolling ========================
+
+set scrolloff=8         "Start scrolling when we're 8 lines away from margins
+set sidescrolloff=15
+set sidescroll=1
+
+" ================ Search ===========================
+
+set incsearch       " Find the next match as we type the search
+set hlsearch        " Highlight searches by default
+set ignorecase      " Ignore case when searching...
+set smartcase       " ...unless we type a capital
+
+" ================ Indentation ======================
+
+set autoindent
+set smartindent
+set smarttab
+set shiftwidth=2
+set softtabstop=2
+set tabstop=2
+set expandtab
+
+filetype plugin on
+filetype indent on
+
+" Display tabs and trailing spaces visually
+set list listchars=tab:\ \ ,trail:·
+
+set linebreak    "Wrap lines at convenient points
+
+" ================ Custom Settings ========================
+
+" Window pane resizing
+nnoremap <silent> <Leader>[ :exe "resize " . (winheight(0) * 3/2)<CR>
+nnoremap <silent> <Leader>] :exe "resize " . (winheight(0) * 2/3)<CR>
+
+" ===== Seeing Is Believing =====
+" " Assumes you have a Ruby with SiB available in the PATH
+" " If it doesn't work, you may need to `gem install seeing_is_believing -v
+" 3.0.0.beta.6`
+" " ...yeah, current release is a beta, which won't auto-install
+"
+" " Annotate every line
+"
+nmap <leader>b :%!seeing_is_believing --timeout 12 --line-length 500 --number-of-captures 300 --alignment-strategy chunk<CR>;
+"
+"  " Annotate marked lines
+"
+nmap <leader>n :%.!seeing_is_believing --timeout 12 --line-length 500 --number-of-captures 300 --alignment-strategy chunk --xmpfilter-style<CR>;
+"
+"  " Remove annotations
+"
+nmap <leader>c :%.!seeing_is_believing --clean<CR>;
+"
+"  " Mark the current line for annotation
+"
+nmap <leader>m A # => <Esc>
+"
+"  " Mark the highlighted lines for annotation
+"
+vmap <leader>m :norm A # => <Esc>
+
+autocmd StdinReadPre * let s:std_in=1
+
+map <Leader>y "+y
+map <Leader>d "+d
+
+let g:tmux_navigator_no_mappings = 1
+
+nnoremap <silent> {Left-mapping} :TmuxNavigateLeft<cr>
+nnoremap <silent> {Down-Mapping} :TmuxNavigateDown<cr>
+nnoremap <silent> {Up-Mapping} :TmuxNavigateUp<cr>
+nnoremap <silent> {Right-Mapping} :TmuxNavigateRight<cr>
+nnoremap <silent> {Previous-Mapping} :TmuxNavigatePrevious<cr>
+
+let g:spec_runner_dispatcher = "VtrSendCommand! {command}"
+
+" RSpec.vim mappings
+map <Leader>t :call RunCurrentSpecFile()<CR>
+map <Leader>s :call RunNearestSpec()<CR>
+map <Leader>l :call RunLastSpec()<CR>
+map <Leader>a :call RunAllSpecs()<CR>
+
+nnoremap <leader>irb :VtrOpenRunner {'orientation': 'h', 'percentage': 50, 'cmd': 'irb'}<cr>
+
+" For ruby block selections
 runtime macros/matchit.vim
-" ================
+
+" For Running plain Ruby test scripts
+nnoremap <leader>r :RunSpec<CR>
+nnoremap <leader>l :RunSpecLine<CR>
+nnoremap <leader>e :RunSpecLastRun<CR>
+nnoremap <leader>cr :RunSpecCloseResult<CR>
+
+" ================ My own customization ==============
+
+set lazyredraw " Don't redraw screen when running macros.
 
 function! RenameFile()
   let old_name = expand('%')
@@ -62,62 +199,44 @@ function! RenameFile()
   endif
 endfunction
 
-" Use ag for text search
-let g:ackprg = 'ag --vimgrep'
-
-let mapleader = ","
+map  <leader>dd   :Dash<cr>
+map  <leader>mv   :call RenameFile()<cr>
+map  <leader>rm   :!rm %
+map <Leader>e :e <C-R>=escape(expand("%:p:h"),' ') . '/'<CR>
+map <Leader>s :split <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
+map <Leader>v :vnew <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
 
 imap jj <esc>
 map <Leader>ac :sp app/controllers/application_controller.rb<cr>
 map <Leader>bb :!bundle install<cr>
 map <Leader>d orequire 'pry'<cr>binding.pry<esc>:w<cr>
 map <Leader>sc :sp db/schema.rb<cr>
-map <Leader>sg :sp<cr>:grep<space>
-vmap <F2> :w !pbcopy<CR><CR>
-map <F3> :r !pbpaste<CR>
-map <Leader>e :e <C-R>=escape(expand("%:p:h"),' ') . '/'<CR>
-map <Leader>s :split <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
-map <Leader>v :vnew <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
-map  <leader>dd   :Dash<cr>
-map  <leader>mv   :call RenameFile()<cr>
-map  <leader>rm   :!rm %
-
-" Emacs-like beginning and end of line.
-imap <c-e> <c-o>$
-imap <c-a> <c-o>^
-
-set backspace=indent,eol,start " allow backspacing over everything in insert mode
-set history=500        " keep 500 lines of command line history
-set ruler        " show the cursor position all the time
-set showcmd        " display incomplete commands
-set showmatch
-set nowrap
-set backupdir=~/.tmp
-set directory=~/.tmp " Don't clutter my dirs up with swp and tmp files
-set autoread
-set wmh=0
-set viminfo+=!
-set guioptions-=T
-set guifont=Triskweline_10:h10
-set et
-set sw=2
-set smarttab
-set noincsearch
-set ignorecase smartcase
-set laststatus=2  " Always show status line.
-set relativenumber
-set number
-set gdefault " assume the /g flag on :s substitutions to replace all matches in a line
-set autoindent " always set autoindenting on
-set lazyredraw " Don't redraw screen when running macros.
-
-colorscheme jellybeans
+nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
+augroup myfiletypes
+  " Clear old autocmds in group
+  autocmd!
+  " autoindent with two spaces, always expand tabs
+  autocmd FileType ruby,eruby,yaml setlocal ai sw=2 sts=2 et
+  autocmd FileType ruby,eruby,yaml setlocal path+=lib
+  autocmd FileType ruby,eruby,yaml setlocal colorcolumn=80
+  " Make ?s part of words
+  autocmd FileType ruby,eruby,yaml setlocal iskeyword+=?
+augroup END
 
 " Set the tag file search order
 set tags=./tags;
 
 " Use Silver Searcher instead of grep
-set grepprg=ag
+if executable('ag')
+  " Use ag over grep
+  set grepprg=ag\ --nogroup\ --nocolor
+
+  " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
+  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+
+  " ag is fast enough that CtrlP doesn't need to cache
+  let g:ctrlp_use_caching = 0
+endif
 
 " Make the omnicomplete text readable
 highlight PmenuSel ctermfg=black
@@ -131,29 +250,13 @@ highlight StatusLine ctermfg=blue ctermbg=yellow
 " Format xml files
 au FileType xml exe ":silent 1,$!xmllint --format --recover - 2>/dev/null"
 
-set shiftround " When at 3 spaces and I hit >>, go to 4, not 5.
-set nofoldenable " Say no to code folding...
-
-" Execute macro in q
-map Q @q
-" Disable K looking stuff up
-map K <Nop>
-
-au BufNewFile,BufRead *.txt setlocal nolist " Don't display whitespace
+" Use ag for text search
+let g:ackprg = 'ag --vimgrep'
 
 " Better? completion on command line
 set wildmenu
 " What to do when I press 'wildchar'. Worth tweaking to see what feels right.
 set wildmode=list:full
 
-" (Hopefully) removes the delay when hitting esc in insert mode
-set noesckeys
-set ttimeout
-set ttimeoutlen=1
-
-" I often mistype Q and Wq
-command! Q  q
-command! Wq wq
-
-vmap <F2> :w !pbcopy<CR><CR>
-map  <F3> :r !pbpaste<CR>
+set backupdir=~/.tmp
+set directory=~/.tmp " Don't clutter my dirs up with swp and tmp file
