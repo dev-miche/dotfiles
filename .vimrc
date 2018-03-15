@@ -36,7 +36,9 @@ Plug 'ctrlpvim/ctrlp.vim'               " searching in vim
 Plug 'rizzatti/dash.vim'                " support for dash
 Plug 'mileszs/ack.vim'                  " Use Ag for search
 Plug 'terryma/vim-multiple-cursors'     " Sublime text style multiple cursors
-Plug 'nanotech/jellybeans.vim'          "vim color scheme
+Plug 'nanotech/jellybeans.vim'          " vim color scheme
+Plug 'dyng/ctrlsf.vim'                  " Find in multiple files
+Plug 'tpope/vim-haml'
 
 call plug#end()  " All of your Plugins must be added before the following line
 
@@ -44,7 +46,7 @@ call plug#end()  " All of your Plugins must be added before the following line
 
 colorscheme jellybeans
 
-set relativenumber              "Line numbers are good
+set number relativenumber       "Line numbers are good
 set backspace=indent,eol,start  "Allow backspace in insert mode
 set history=1000                "Store lots of :cmdline history
 set showcmd                     "Show incomplete cmds down the bottom
@@ -206,12 +208,14 @@ map <Leader>e :e <C-R>=escape(expand("%:p:h"),' ') . '/'<CR>
 map <Leader>s :split <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
 map <Leader>v :vnew <C-R>=escape(expand("%:p:h"), ' ') . '/'<CR>
 
-imap jj <esc>
 map <Leader>ac :sp app/controllers/application_controller.rb<cr>
 map <Leader>bb :!bundle install<cr>
 map <Leader>d orequire 'byebug'<cr>byebug<esc>:w<cr>
+map <Leader>l oRails.logger.info "DEBUG: "
 map <Leader>sc :sp db/schema.rb<cr>
+map <Leader>F :CtrlSF -R "<C-R><C-W>"
 nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
+
 augroup myfiletypes
   " Clear old autocmds in group
   autocmd!
@@ -260,3 +264,12 @@ set wildmode=list:full
 
 set backupdir=~/.tmp
 set directory=~/.tmp " Don't clutter my dirs up with swp and tmp file
+
+let g:ctrlsf_ackprg = 'ag'
+let g:ctrlsf_position = 'bottom'
+
+let g:multi_cursor_use_default_mapping=0
+let g:multi_cursor_next_key='<C-n>'
+let g:multi_cursor_prev_key='<C-p>'
+let g:multi_cursor_skip_key='<C-x>'
+let g:multi_cursor_quit_key='<C-d>'
