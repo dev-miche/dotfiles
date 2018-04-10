@@ -39,7 +39,7 @@ Plug 'terryma/vim-multiple-cursors'     " Sublime text style multiple cursors
 Plug 'nanotech/jellybeans.vim'          " vim color scheme
 Plug 'dyng/ctrlsf.vim'                  " Find in multiple files
 Plug 'tpope/vim-haml'
-
+Plug 'scrooloose/nerdtree'              " Nerd Tree plugin for navigation
 call plug#end()  " All of your Plugins must be added before the following line
 
 " ================ General Config ====================
@@ -215,6 +215,7 @@ map <Leader>l oRails.logger.info "DEBUG: "
 map <Leader>sc :sp db/schema.rb<cr>
 map <Leader>F :CtrlSF -R "<C-R><C-W>"
 nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
+map <Leader>n :NERDTreeToggle<CR>
 
 augroup myfiletypes
   " Clear old autocmds in group
@@ -236,10 +237,15 @@ if executable('ag')
   set grepprg=ag\ --nogroup\ --nocolor
 
   " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
-  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+  let g:ctrlp_user_command = ['ag %s --files-with-matches -g ""']
+  let g:ctrlp_user_command += ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
 
   " ag is fast enough that CtrlP doesn't need to cache
+  let g:ctrlp_switch_buffer = 0
   let g:ctrlp_use_caching = 0
+  let g:ctrlp_max_files=0
+  let g:ctrlp_max_depth=100
+  let g:ctrlp_working_path_mode = 'ra'
 endif
 
 " Make the omnicomplete text readable
